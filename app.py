@@ -112,14 +112,15 @@ def view_audit():
 
     cursor.execute(
         """
-        SELECT TOP 100
-            ItemType,
-            ItemNumber,
-            QuantityChange,
-            Action,
-            CreatedAt
-        FROM InventoryAudit
-        ORDER BY CreatedAt DESC
+        SELECT 
+            itemtype,
+            itemnumber,
+            quantitychange,
+            action,
+            createdat
+        FROM inventoryaudit
+        ORDER BY createdat DESC
+        LIMIT 100
     """
     )
 
@@ -140,14 +141,14 @@ def dashboard():
 
     cursor.execute(
         """
-        SELECT SUM(Quantity) FROM Keys
+        SELECT SUM(quantity) FROM keys
     """
     )
     total_keys = cursor.fetchone()[0] or 0
 
     cursor.execute(
         """
-        SELECT SUM(Quantity) FROM Cores
+        SELECT SUM(quantity) FROM cores
     """
     )
     total_cores = cursor.fetchone()[0] or 0
@@ -169,7 +170,7 @@ def login():
         user = authenticate_user(username, password)
 
         if user:
-            session["user_id"] = user["user_id"]
+            session["user_id"] = user["userid"]
             session["username"] = user["username"]
             session["role"] = user["role"]
             flash("Logged in successfully", "success")
@@ -210,8 +211,8 @@ def register():
         try:
             cursor.execute(
                 """
-                INSERT INTO Users (Username, PasswordHash, Role)
-                VALUES (?, ?, ?)
+                INSERT INTO Users (username, passwordhash, role)
+                VALUES (%s, %s, %s)
             """,
                 (username, hashed_pw.decode("utf-8"), role),
             )

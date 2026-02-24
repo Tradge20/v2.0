@@ -1,42 +1,38 @@
-import pyodbc
+import os
+import psycopg2
 import bcrypt
 from flask import session
 
 
-# Connection string
 def get_connection():
-    return pyodbc.connect(
-        "DRIVER={ODBC Driver 17 for SQL Server};"
-        r"SERVER=.\SQLEXPRESS;"
-        "DATABASE=KeysCores;"
-        "Trusted_Connection=yes;"
-    )
+    return psycopg2.connect(os.environ["DATABASE_URL"])
 
 
 def get_or_create_brand_id(cursor, brand_name):
     cursor.execute(
         """
-        SELECT BrandID
+        SELECT brandid
         FROM Brands
-        WHERE BrandName = ?
+        WHERE brandname = %s
     """,
         (brand_name,),
     )
 
     row = cursor.fetchone()
     if row:
-        return row.BrandID
+        return row[0]
 
     cursor.execute(
         """
-        INSERT INTO Brands (BrandName)
-        OUTPUT INSERTED.BrandID
-        VALUES (?)
+        INSERT INTO Brands (brandname)
+        VALUES (%s)
+        RETURNING brandid
     """,
         (brand_name,),
     )
 
-    return cursor.fetchone().BrandID
+    row = cursor.fetchone()
+    return row[0]
 
 
 def add_key_inventory(cursor, brand, number, qty):
@@ -46,7 +42,7 @@ def add_key_inventory(cursor, brand, number, qty):
     cursor.execute(
         """
         SELECT Quantity FROM Keys
-        WHERE BrandID = ? AND KeyNumber = ?
+        WHERE brandid = %s AND keynumber = %s
     """,
         (brand_id, number),
     )
@@ -63,8 +59,8 @@ def add_key_inventory(cursor, brand, number, qty):
         cursor.execute(
             """
             UPDATE Keys
-            SET Quantity = ?
-            WHERE BrandID = ? AND KeyNumber = ?
+            SET Quantity = %s
+            WHERE brandid = %s AND keynumber = %s
         """,
             (new_qty, brand_id, number),
         )
@@ -74,8 +70,8 @@ def add_key_inventory(cursor, brand, number, qty):
 
         cursor.execute(
             """
-            INSERT INTO Keys (BrandID, KeyNumber, Quantity)
-            VALUES (?, ?, ?)
+            INSERT INTO Keys (brandid, keynumber, quantity)
+            VALUES (%s, %s, %s)
         """,
             (brand_id, number, qty),
         )
@@ -88,7 +84,7 @@ def add_core_inventory(cursor, brand, number, qty):
     cursor.execute(
         """
         SELECT Quantity FROM Cores
-        WHERE BrandID = ? AND CoreNumber = ?
+        WHERE brandid = %s AND corenumber = %s
     """,
         (brand_id, number),
     )
@@ -105,8 +101,8 @@ def add_core_inventory(cursor, brand, number, qty):
         cursor.execute(
             """
             UPDATE Cores
-            SET Quantity = ?
-            WHERE BrandID = ? AND CoreNumber = ?
+            SET Quantity = %s
+            WHERE brandid = %s AND corenumber = %s
         """,
             (new_qty, brand_id, number),
         )
@@ -116,8 +112,8 @@ def add_core_inventory(cursor, brand, number, qty):
 
         cursor.execute(
             """
-            INSERT INTO Cores (BrandID, CoreNumber, Quantity)
-            VALUES (?, ?, ?)
+            INSERT INTO Cores (brandid, corenumber, quantity)
+            VALUES (%s, %s, %s)
         """,
             (brand_id, number, qty),
         )
@@ -130,21 +126,21 @@ def search_keys(brand_name=None, key_number=None):
     try:
         sql = """
         SELECT
-            b.BrandName,
-            k.KeyNumber,
-            k.Quantity
+            b.brandname,
+            k.keynumber,
+            k.quantity
         FROM Keys k
-        JOIN Brands b ON k.BrandID = b.BrandID
+        JOIN Brands b ON k.brandid = b.brandid
         WHERE 1=1
         """
         params = []
 
         if brand_name:
-            sql += " AND b.BrandName = ?"
+            sql += " AND b.brandname = %s"
             params.append(brand_name)
 
         if key_number:
-            sql += " AND k.KeyNumber = ?"
+            sql += " AND k.keynumber = %s"
             params.append(key_number)
 
         cursor.execute(sql, params)
@@ -162,21 +158,21 @@ def search_cores(brand_name=None, core_number=None):
     try:
         sql = """
         SELECT
-            b.BrandName,
-            c.CoreNumber,
-            c.Quantity
+            b.brandname,
+            c.corenumber,
+            c.quantity
         FROM Cores c
-        JOIN Brands b ON c.BrandID = b.BrandID
+        JOIN Brands b ON c.brandid = b.brandid
         WHERE 1=1
         """
         params = []
 
         if brand_name:
-            sql += " AND b.BrandName = ?"
+            sql += " AND b.brandname = %s"
             params.append(brand_name)
 
         if core_number:
-            sql += " AND c.CoreNumber = ?"
+            sql += " AND c.corenumber = %s"
             params.append(core_number)
 
         cursor.execute(sql, params)
@@ -194,27 +190,27 @@ def search_matching_sets(brand_name=None):
     try:
         sql = """
         SELECT
-            b.BrandName,
-            k.KeyNumber AS Number,
-            k.Quantity AS KeyQty,
-            c.Quantity AS CoreQty,
+            b.brandname,
+            k.keynumber AS number,
+            k.quantity AS keyqty,
+            c.quantity AS coreqty,
             CASE
-                WHEN k.Quantity < c.Quantity THEN k.Quantity
-                ELSE c.Quantity
+                WHEN k.quantity < c.quantity THEN k.quantity
+                ELSE c.quantity
             END AS SetsAvailable
         FROM Keys k
         JOIN Cores c
-            ON k.BrandID = c.BrandID
-            AND k.KeyNumber = c.CoreNumber
+            ON k.brandid = c.brandid
+            AND k.keynumber = c.corenumber
         JOIN Brands b
-            ON k.BrandID = b.BrandID
+            ON k.brandid = b.brandid
         WHERE 1=1
         """
 
         params = []
 
         if brand_name:
-            sql += " AND b.BrandName = ?"
+            sql += " AND b.brandname = %s"
             params.append(brand_name)
 
         cursor.execute(sql, params)
@@ -311,8 +307,8 @@ def insert_audit(cursor, item_type, brand_id, number, qty, action):
     cursor.execute(
         """
         INSERT INTO InventoryAudit
-            (ItemType, BrandID, ItemNumber, QuantityChange, Action, UserID)
-        VALUES (?, ?, ?, ?, ?, ?)
+            (itemtype, brandid, itemnumber, quantitychange, action, userid)
+        VALUES (%s, %s, %s, %s, %s, %s)
     """,
         (item_type, brand_id, number, qty, action, user_id),
     )
@@ -327,7 +323,7 @@ def create_user(username, password):
     cursor.execute(
         """
         INSERT INTO Users (Username, PasswordHash)
-        VALUES (?, ?)
+        VALUES (%s, %s)
     """,
         (username, hashed.decode("utf-8")),
     )
@@ -343,9 +339,9 @@ def authenticate_user(username, password):
 
     cursor.execute(
         """
-        SELECT UserID, Username, PasswordHash, Role
+        SELECT userid, username, passwordhash, role
         FROM Users
-        WHERE Username = ?
+        WHERE username = %s
     """,
         (username,),
     )
@@ -358,11 +354,11 @@ def authenticate_user(username, password):
     if not row:
         return None
 
-    user_id, username, stored_hash, role = row
+    userid, username, stored_hash, role = row
 
     if bcrypt.checkpw(password.encode("utf-8"), stored_hash.encode("utf-8")):
         return {
-            "user_id": user_id,
+            "userid": userid,
             "username": username,
             "role": role,
         }
