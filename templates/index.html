@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Key / Core Inventory</title>
+  </head>
+  <body>
+    <h1>Inventory</h1>
+
+    <h2>Add Inventory</h2>
+    <form method="POST" action="/add">
+      <label>Brand:</label>
+      <input name="brand" required />
+
+      <label>Type:</label>
+      <select name="type">
+        <option value="key">Key</option>
+        <option value="core">Core</option>
+      </select>
+
+      <label>Number:</label>
+      <input name="number" required />
+
+      <label>Quantity:</label>
+      <input name="quantity" type="number" required />
+
+      <button type="submit">Add</button>
+    </form>
+
+    <hr />
+
+    <h2>Search</h2>
+    <form method="GET" action="/search">
+      <label>Brand:</label>
+      <input name="brand" />
+
+      <label>Number (optional):</label>
+      <input name="number" />
+
+      <label>View:</label>
+      <select name="type">
+        <option value="key">Keys</option>
+        <option value="core">Cores</option>
+        <option value="set">Matching Sets</option>
+      </select>
+
+      <button type="submit">Search</button>
+    </form>
+  </body>
+</html>

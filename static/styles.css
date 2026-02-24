@@ -1,0 +1,24 @@
+.flash-messages {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.flash {
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.flash.success {
+  background-color: #e6f4ea;
+  color: #137333;
+  border: 1px solid #b7dfc1;
+}
+
+.flash.error {
+  background-color: #fce8e6;
+  color: #a50e0e;
+  border: 1px solid #f5c6cb;
+}

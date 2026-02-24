@@ -1,0 +1,40 @@
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Logs / runtime files
+*.log
+instance/
+
+# Environment / secrets (if you add them later)
+.env
+.env.*
+
+# Editor / IDE settings (optional)
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Database files
+KeysCores.db
+*.db-journal
+*.db-trace.json
+*.db-trace.jsonl
+*.db-trace.jsonl.gz
+*.db-trace.jsonl.gz.part
+*.db-trace.jsonl.gz.part.1
+*.db-trace.jsonl.gz.part.2
+*.db-trace.jsonl.gz.part.3
+*.db-trace.jsonl.gz.part.4
+*.db-trace.jsonl.gz.part.5
