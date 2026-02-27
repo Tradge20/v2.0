@@ -30,6 +30,12 @@ button {
   }
 }
 
+/* Make the Type dropdown in the batch table easier to read */
+select.type {
+  min-width: 120px;
+  font-size: 1.1rem;
+}
+
 .flash-messages {
   list-style: none;
   padding: 0;

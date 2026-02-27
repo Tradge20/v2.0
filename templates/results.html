@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
       .nav-bar {
         margin-bottom: 16px;
@@ -51,7 +52,11 @@
       {% for row in results %}
       <tr>
         {% for col in row %}
+        {% if loop.index0 == 0 %}
+        <td>{{ col | title }}</td>
+        {% else %}
         <td>{{ col }}</td>
+        {% endif %}
         {% endfor %}
       </tr>
       {% endfor %}

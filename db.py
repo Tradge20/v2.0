@@ -131,6 +131,9 @@ def search_keys(brand_name=None, key_number=None):
     cursor = conn.cursor()
 
     try:
+        if brand_name:
+            brand_name = brand_name.strip().lower()
+
         sql = """
         SELECT
             b.brandname,
@@ -163,6 +166,8 @@ def search_cores(brand_name=None, core_number=None):
     cursor = conn.cursor()
 
     try:
+        if brand_name:
+            brand_name = brand_name.strip().lower()
         sql = """
         SELECT
             b.brandname,
@@ -195,6 +200,8 @@ def search_matching_sets(brand_name=None):
     cursor = conn.cursor()
 
     try:
+        if brand_name:
+            brand_name = brand_name.strip().lower()
         sql = """
         SELECT
             b.brandname,
