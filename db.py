@@ -9,6 +9,13 @@ def get_connection():
 
 
 def get_or_create_brand_id(cursor, brand_name):
+    brand_name = brand_name.strip().lower()
+    if not brand_name:
+        raise ValueError("Brand name cannot be empty")
+
+    if len(brand_name) > 25:
+        raise ValueError("Brand name cannot be longer than 25 characters")
+
     cursor.execute(
         """
         SELECT brandid
