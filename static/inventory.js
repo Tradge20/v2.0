@@ -13,7 +13,13 @@ function addRow() {
         </td>
         <td><input class="brand" required></td>
         <td><input class="number" required></td>
-        <td><input class="qty" type="number" required></td>
+        <td>
+          <div class="qty-control">
+            <button type="button" class="qty-btn" onclick="changeQty(this, -1)">−</button>
+            <input class="qty" type="number" inputmode="numeric" step="1" required value="0">
+            <button type="button" class="qty-btn" onclick="changeQty(this, 1)">+</button>
+          </div>
+        </td>
         <td><button type="button" onclick="removeRow(this)">❌</button></td>
     `;
 
@@ -22,6 +28,13 @@ function addRow() {
 
 function removeRow(button) {
   button.closest("tr").remove();
+}
+
+function changeQty(button, delta) {
+  const qtyInput = button.closest(".qty-control").querySelector(".qty");
+  const currentValue = parseInt(qtyInput.value, 10);
+  const safeValue = Number.isNaN(currentValue) ? 0 : currentValue;
+  qtyInput.value = safeValue + delta;
 }
 
 document.getElementById("inventoryForm").addEventListener("submit", () => {
